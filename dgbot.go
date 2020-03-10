@@ -18,7 +18,7 @@ func main() {
 
 func run() {
 	// generate token on discord and get the bot permission to post in the server
-	token := "some token"
+	token := os.Getenv("TOKEN")
 
 	// Create a new Discord session using the provided bot token.
 	dg, err := discordgo.New("Bot " + token)
@@ -30,6 +30,7 @@ func run() {
 	// Register the callback funcs
 	dg.AddHandler(addPeach)
 	dg.AddHandler(heathcliff)
+	dg.AddHandler(reactWithUnicorn)
 
 	// Open a websocket connection to Discord and begin listening.
 	err = dg.Open()
@@ -65,6 +66,27 @@ func addPeach(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// if "this" is the last word (or anything including this), react with a peach emoji
 	if strings.Contains(lastPartOfString, "this") {
 		err := s.MessageReactionAdd(m.ChannelID, m.ID, "🍑")
+		if err != nil {
+			fmt.Println("failed to react with peach emoji")
+		}
+	}
+}
+
+func reactWithUnicorn(s *discordgo.Session, m *discordgo.MessageCreate) {
+	// Ignore all messages created by the bot itself
+	if m.Author.ID == s.State.User.ID {
+		return
+	}
+
+	// normalize message contents to lower case
+	contentNoCase := strings.ToLower(m.Content)
+
+	// if "this" is the last word (or anything including this), react with a peach emoji
+	if strings.Contains(contentNoCase, "unicorn") {
+		// get special custom unicorn emoji, not the ho-hum one
+		uniEmoji := getEmojiID(s, m, "unicorn-1")
+
+		err := s.MessageReactionAdd(m.ChannelID, m.ID, uniEmoji)
 		if err != nil {
 			fmt.Println("failed to react with peach emoji")
 		}
