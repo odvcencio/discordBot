@@ -31,6 +31,7 @@ func run() {
 	dg.AddHandler(addPeach)
 	dg.AddHandler(heathcliff)
 	dg.AddHandler(reactWithUnicorn)
+	dg.AddHandler(eightBall)
 
 	// Open a websocket connection to Discord and begin listening.
 	err = dg.Open()
@@ -83,12 +84,15 @@ func reactWithUnicorn(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// if "this" is the last word (or anything including this), react with a peach emoji
 	if strings.Contains(contentNoCase, "unicorn") {
-		// get special custom unicorn emoji, not the ho-hum one
-		uniEmoji := getEmojiID(s, m, "unicorn-1")
+		// doesnt work in the unicorn servers for some reason! maybe has to do with guilds?
 
-		err := s.MessageReactionAdd(m.ChannelID, m.ID, uniEmoji)
+		// // get special custom unicorn emoji, not the ho-hum one
+		// uniEmoji := getEmojiID(s, m, "unicorn-1")
+
+		// fmt.Println(uniEmoji)
+		err := s.MessageReactionAdd(m.ChannelID, m.ID, "🦄")
 		if err != nil {
-			fmt.Println("failed to react with peach emoji")
+			fmt.Println("failed to react with unicorn emoji")
 		}
 	}
 }
@@ -122,6 +126,50 @@ func heathcliff(s *discordgo.Session, m *discordgo.MessageCreate) {
 			randoDate.Day())
 
 		_, err := s.ChannelMessageSend(m.ChannelID, heathURL)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+}
+
+func eightBall(s *discordgo.Session, m *discordgo.MessageCreate) {
+	// Ignore all messages created by the bot itself
+	if m.Author.ID == s.State.User.ID {
+		return
+	}
+
+	eightBallSayings := []string{
+		"As I see it, yes.",
+		"Ask again later.",
+		"Better not tell you now.",
+		"Cannot predict now.",
+		"Concentrate and ask again.",
+		"Don’t count on it.",
+		"It is certain.",
+		"It is decidedly so.",
+		"Most likely.",
+		"My reply is no.",
+		"My sources say no.",
+		"Outlook not so good.",
+		"Outlook good.",
+		"Reply hazy, try again.",
+		"Signs point to yes.",
+		"Very doubtful.",
+		"Without a doubt.",
+		"Yes.",
+		"Yes – definitely.",
+		"You may rely on it.",
+	}
+
+	s1 := rand.NewSource(time.Now().UnixNano())
+	r1 := rand.New(s1)
+
+	contentNoCase := strings.ToLower(m.Content)
+
+	if strings.Contains(contentNoCase, "!8ball") {
+		answer := eightBallSayings[r1.Intn(len(eightBallSayings))]
+
+		_, err := s.ChannelMessageSend(m.ChannelID, answer)
 		if err != nil {
 			fmt.Println(err)
 		}
